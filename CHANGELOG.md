@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - Rename repository metadata to `mamercad/codex-unifi-plugin`.
 - Add CI validation for plugin structure, asset paths, and skill frontmatter.
+- Normalize shared plugin repository boilerplate with the Telegram and UptimeRobot plugins.
 
 ### Added
 - Initial UniFi Codex plugin manifest.

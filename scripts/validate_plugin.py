@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the UniFi Codex plugin structure."""
+"""Validate a Codex plugin repository structure."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = ROOT / ".codex-plugin" / "plugin.json"
-SKILL_PATH = ROOT / "skills" / "unifi" / "SKILL.md"
 
 
 def fail(message: str) -> None:
@@ -60,10 +59,8 @@ def require_relative_path(value: str, field_name: str) -> Path:
   return target
 
 
-def validate_manifest(payload: dict) -> None:
+def validate_manifest(payload: dict) -> str:
   name = require_string(payload, "name")
-  if name != "unifi":
-    fail("manifest name must be unifi")
   if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
     fail("manifest name must be kebab-case")
 
@@ -131,12 +128,15 @@ def validate_manifest(payload: dict) -> None:
     if not screenshot_path.is_file():
       fail(f"missing screenshot: {screenshot}")
 
+  return name
 
-def validate_skill() -> None:
-  if not SKILL_PATH.is_file():
-    fail(f"missing {SKILL_PATH.relative_to(ROOT)}")
 
-  content = SKILL_PATH.read_text()
+def validate_skill(plugin_name: str) -> None:
+  skill_path = ROOT / "skills" / plugin_name / "SKILL.md"
+  if not skill_path.is_file():
+    fail(f"missing {skill_path.relative_to(ROOT)}")
+
+  content = skill_path.read_text()
   if not content.startswith("---\n"):
     fail("skill must start with YAML frontmatter")
 
@@ -145,15 +145,14 @@ def validate_skill() -> None:
   except ValueError:
     fail("skill frontmatter must be closed")
 
-  if "\nname: unifi\n" not in f"\n{frontmatter}":
-    fail("skill frontmatter must include name: unifi")
+  if f"\nname: {plugin_name}\n" not in f"\n{frontmatter}":
+    fail(f"skill frontmatter must include name: {plugin_name}")
   if "\ndescription:" not in f"\n{frontmatter}":
     fail("skill frontmatter must include a description")
 
 
 def main() -> None:
-  validate_manifest(load_manifest())
-  validate_skill()
+  validate_skill(validate_manifest(load_manifest()))
   print("Plugin validation passed.")
 
 

@@ -1,4 +1,4 @@
-title = "unifi-plugin gitleaks config"
+title = "codex-unifi-plugin gitleaks config"
 
 [extend]
 useDefault = true

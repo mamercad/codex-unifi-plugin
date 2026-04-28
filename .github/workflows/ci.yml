@@ -49,9 +49,11 @@ jobs:
           test -f .gitmessage
           test -f .gitleaks.toml
           test -f CHANGELOG.md
-          test -f skills/unifi/SKILL.md
-          test -x scripts/unifi_api.sh
           test -f LICENSE
-          test -f assets/icon.png
+          test -d skills
+          test -d scripts
+          test -f assets/icon.png || test -f assets/icon.svg
           test -f assets/logo.svg
+          find skills -name SKILL.md -type f | grep -q .
+          find scripts -name '*_api.sh' -type f | grep -q .
           grep -q "Keep a Changelog" CHANGELOG.md
