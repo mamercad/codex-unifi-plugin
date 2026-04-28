@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      - name: Validate plugin manifest JSON
+        run: python3 -m json.tool .codex-plugin/plugin.json >/dev/null
+
+      - name: Validate commitlint config JSON
+        run: python3 -m json.tool .commitlintrc.json >/dev/null
+
+      - name: Validate plugin structure
+        run: python3 scripts/validate_plugin.py
+
+      - name: Lint shell scripts
+        run: find scripts -name '*.sh' -print0 | xargs -0 shellcheck
+
+      - name: Verify expected plugin files
+        run: |
+          test -f .commitlintrc.json
+          test -f .codex-plugin/plugin.json
+          test -f .editorconfig
+          test -f .gitmessage
+          test -f .gitleaks.toml
+          test -f CHANGELOG.md
+          test -f skills/unifi/SKILL.md
+          test -x scripts/unifi_api.sh
+          test -f LICENSE
+          test -f assets/icon.png
+          test -f assets/logo.svg
+          grep -q "Keep a Changelog" CHANGELOG.md

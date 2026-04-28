@@ -1,0 +1,4 @@
+title = "unifi-plugin gitleaks config"
+
+[extend]
+useDefault = true

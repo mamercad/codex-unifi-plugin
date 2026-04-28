@@ -1,0 +1,44 @@
+{
+  "name": "unifi",
+  "version": "0.1.0",
+  "description": "Unofficial Codex plugin for working with Ubiquiti UniFi Network controllers.",
+  "author": {
+    "name": "Mark Mercado",
+    "email": "mamercad@gmail.com",
+    "url": "https://github.com/mamercad"
+  },
+  "homepage": "https://github.com/mamercad/codex-unifi-plugin",
+  "repository": "https://github.com/mamercad/codex-unifi-plugin",
+  "license": "MIT",
+  "keywords": [
+    "ubiquiti",
+    "unifi",
+    "networking",
+    "wifi",
+    "codex-plugin"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "UniFi",
+    "shortDescription": "Inspect and operate UniFi Network controllers.",
+    "longDescription": "Unofficial helper plugin for Ubiquiti UniFi Network environments. It guides Codex through safe controller access, site discovery, client/device inspection, and configuration-change workflows.",
+    "developerName": "Mark Mercado",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/mamercad/codex-unifi-plugin",
+    "privacyPolicyURL": "https://github.com/mamercad/codex-unifi-plugin",
+    "termsOfServiceURL": "https://github.com/mamercad/codex-unifi-plugin",
+    "defaultPrompt": [
+      "List my UniFi sites and devices.",
+      "Summarize current UniFi clients.",
+      "Check UniFi AP health."
+    ],
+    "brandColor": "#1592E6",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.svg",
+    "screenshots": []
+  }
+}

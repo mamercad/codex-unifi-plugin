@@ -1,0 +1,19 @@
+# <type>(<scope>): <subject>
+#
+# Types:
+#   feat      A new feature
+#   fix       A bug fix
+#   docs      Documentation only changes
+#   style     Formatting changes only
+#   refactor  Code changes that neither fix a bug nor add a feature
+#   test      Adding or updating tests
+#   chore     Maintenance, tooling, or metadata changes
+#   ci        CI configuration changes
+#
+# Keep the subject imperative and under 72 characters.
+#
+# Body: explain what changed and why.
+#
+# Footer examples:
+#   BREAKING CHANGE: describe the breaking change
+#   Closes #123

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" role="img" aria-label="UniFi plugin logo">
+  <rect width="320" height="96" rx="16" fill="#F8FBFD"/>
+  <rect x="20" y="16" width="64" height="64" rx="14" fill="#1592E6"/>
+  <path fill="#FFFFFF" d="M36 36h8v17c0 5 3 8 8 8s8-3 8-8V36h8v17c0 9-6 15-16 15s-16-6-16-15V36z"/>
+  <circle cx="52" cy="33" r="5" fill="#FFFFFF" opacity=".9"/>
+  <text x="104" y="46" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#17212B">UniFi</text>
+  <text x="104" y="69" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#52606D">Codex Plugin</text>
+</svg>
