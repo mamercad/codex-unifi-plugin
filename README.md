@@ -1,18 +1,25 @@
 # UniFi Codex Plugin
 
-Unofficial Codex plugin for working with Ubiquiti UniFi Network controllers.
+Unofficial Codex plugin for working with Ubiquiti UniFi Site Manager and local Network controllers.
 
-It adds a UniFi skill that helps Codex safely discover sites, inspect devices and clients, and reason about potentially disruptive network changes before making them.
+It adds a UniFi skill that helps Codex safely discover Site Manager hosts, sites, devices, ISP metrics, and local controller details while reasoning about potentially disruptive network changes before making them.
 
 ## Contents
 
 - `.codex-plugin/plugin.json`: Codex plugin manifest.
 - `skills/unifi/SKILL.md`: UniFi operating guidance for Codex.
+- `scripts/unifi_site_manager_api.sh`: Small curl-based helper for official UniFi Site Manager API reads.
 - `scripts/unifi_api.sh`: Small curl-based helper for UniFi Network API reads.
 
 ## Configuration
 
-Set these environment variables before asking Codex to inspect a controller:
+Set your official Site Manager API token before asking Codex to inspect cloud-visible UniFi resources:
+
+```bash
+export UNIFI_API_TOKEN="your-api-token"
+```
+
+For local controller access, set these environment variables:
 
 ```bash
 export UNIFI_URL="https://192.168.1.1"
@@ -30,6 +37,10 @@ export UNIFI_INSECURE=1
 ## Examples
 
 ```bash
+scripts/unifi_site_manager_api.sh hosts
+scripts/unifi_site_manager_api.sh sites
+scripts/unifi_site_manager_api.sh devices
+scripts/unifi_site_manager_api.sh isp-metrics 5m 24h
 scripts/unifi_api.sh sites
 scripts/unifi_api.sh devices
 scripts/unifi_api.sh clients
@@ -38,7 +49,7 @@ scripts/unifi_api.sh health
 
 ## Safety
 
-Configuration changes to UniFi networks can disconnect clients or devices. The skill instructs Codex to start with read-only discovery and ask for explicit confirmation before disruptive actions.
+Configuration changes to UniFi networks can disconnect clients or devices. The skill instructs Codex to start with read-only Site Manager discovery and ask for explicit confirmation before disruptive actions.
 
 ## Secret Scanning
 
