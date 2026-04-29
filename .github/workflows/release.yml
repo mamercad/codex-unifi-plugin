@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release, such as v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      - name: Validate release tag
+        run: |
+          set -euo pipefail
+          version="$(python3 -c 'import json; print(json.load(open(".codex-plugin/plugin.json"))["version"])')"
+          tag="${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
+          if [ "$tag" != "v$version" ]; then
+            echo "Release tag $tag does not match plugin version v$version." >&2
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+
+      - name: Validate plugin manifest JSON
+        run: python3 -m json.tool .codex-plugin/plugin.json >/dev/null
+
+      - name: Validate commitlint config JSON
+        run: python3 -m json.tool .commitlintrc.json >/dev/null
+
+      - name: Validate plugin structure
+        run: python3 scripts/validate_plugin.py
+
+      - name: Lint shell scripts
+        run: find scripts -name '*.sh' -print0 | xargs -0 shellcheck
+
+      - name: Build release archive
+        run: |
+          set -euo pipefail
+          package="codex-unifi-plugin"
+          archive="$package-$VERSION.zip"
+          mkdir -p "dist/$package"
+          cp -R .codex-plugin assets skills scripts README.md CHANGELOG.md LICENSE "dist/$package/"
+          (cd dist && zip -r "$archive" "$package")
+          (cd dist && shasum -a 256 "$archive" > "$archive.sha256")
+
+      - name: Prepare release notes
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["VERSION"]
+          changelog = Path("CHANGELOG.md").read_text()
+          pattern = re.compile(
+              rf"^## \[{re.escape(version)}\].*?\n(?P<body>.*?)(?=^## \[|\Z)",
+              re.MULTILINE | re.DOTALL,
+          )
+          match = pattern.search(changelog)
+          notes = match.group("body").strip() if match else f"Release v{version}."
+          Path("dist/release-notes.md").write_text(notes + "\n")
+          PY
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          body_path: dist/release-notes.md
+          files: |
+            dist/codex-unifi-plugin-${{ env.VERSION }}.zip
+            dist/codex-unifi-plugin-${{ env.VERSION }}.zip.sha256
+
+      - name: Notify Slack
+        run: |
+          set -euo pipefail
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL is not configured; skipping Slack notification."
+            exit 0
+          fi
+          export RELEASE_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$TAG"
+          python3 - <<'PY' | curl -fsS -X POST -H 'Content-type: application/json' --data @- "$SLACK_WEBHOOK_URL"
+          import json
+          import os
+
+          payload = {
+              "text": f"Released {os.environ['GITHUB_REPOSITORY']} {os.environ['TAG']}: {os.environ['RELEASE_URL']}",
+              "blocks": [
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": f":rocket: *Released* `{os.environ['GITHUB_REPOSITORY']}` *{os.environ['TAG']}*",
+                      },
+                  },
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": f"<{os.environ['RELEASE_URL']}|View GitHub Release>",
+                      },
+                  },
+              ],
+          }
+          print(json.dumps(payload))
+          PY
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
